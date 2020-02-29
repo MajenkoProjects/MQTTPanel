@@ -1,0 +1,58 @@
+<?xml version="1.0"?>
+<project name="MQTT Panel" default="build">
+
+    <taskdef name="depends" classname="ant.dep.Depends" classpath="antlib/ant-dep.jar"/>
+
+    <target name="clean" description="Clean out the build directories">
+        <delete dir="bin" />
+        <delete file="mqttpanel.jar" />
+    </target>
+
+    <target name="compile" description="Compile" depends="deps">
+        <mkdir dir="bin" />
+        <path id="class.path">
+            <fileset dir="deps">
+                <include name="*.jar" />
+            </fileset>
+        </path>
+        <javac target="1.8" 
+               source="1.8"
+               debug="true"
+               debuglevel="lines,vars,source"
+               encoding="UTF-8"
+               bootclasspath="/usr/lib/jvm/java-8-openjdk-amd64/jre/lib/rt.jar"
+               includeAntRuntime="false"
+               deprecation="true"
+               srcdir="src" 
+               destdir="bin">
+            <classpath refid="class.path" />
+            <compilerarg value="-Xlint:unchecked"/>
+        </javac>
+    </target>		
+
+    <target name="build" depends="compile" description="Build">
+        <jar basedir="bin" destfile="mqttpanel.jar">
+            <fileset dir="bin" />
+            <fileset dir="resources" />
+            <zipgroupfileset dir="deps" includes="*.jar" />
+            <manifest>
+                <attribute name="Main-Class" value="uk.co.majenko.mqttpanel.Main" />
+                <attribute name="Class-Path" value="mqttpanel.jar" />
+                <attribute name="Version" value="1.0.0" />
+            </manifest>
+        </jar>
+    </target>
+
+   <target name="deps">
+        <depends dir="deps">
+            <maven group="org.fusesource.mqtt-client"               artifact="mqtt-client"              version="1.12" />
+            <maven group="org.fusesource.hawtbuf"                   artifact="hawtbuf"                  version="1.11" />
+            <maven group="org.fusesource.hawtdispatch"              artifact="hawtdispatch"             version="1.22" />
+            <maven group="org.fusesource.hawtdispatch"              artifact="hawtdispatch-transport"   version="1.22" />
+            <maven group="org.reflections"                          artifact="reflections"              version="0.9.11" />
+            <maven group="com.google.guava"                         artifact="guava"                    version="24.0-jre" />
+            <maven group="org.javassist"                            artifact="javassist"                version="3.22.0-GA" />
+        </depends>
+    </target>
+
+</project>
