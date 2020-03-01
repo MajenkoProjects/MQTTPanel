@@ -54,10 +54,17 @@ public class MQTTPanel extends JPanel implements MouseListener, MouseMotionListe
     ArrayList<MQTTWidget> widgets;
     HashMap<String, MQTTWidget> subscriptions;
 
+    File rootDir;
+
     Element display;
 
     public MQTTPanel(File xml) throws FileNotFoundException, SAXException, ParserConfigurationException, IOException, URISyntaxException {
+        this(xml, new File(System.getProperty("user.dir")));
+    }
+
+    public MQTTPanel(File xml, File rd) throws FileNotFoundException, SAXException, ParserConfigurationException, IOException, URISyntaxException {
         super();
+        rootDir = rd;
         if (!xml.exists()) {
             throw new FileNotFoundException(xml.getAbsolutePath());
         }
@@ -86,6 +93,11 @@ public class MQTTPanel extends JPanel implements MouseListener, MouseMotionListe
             Integer.parseInt(getTextNode(background, "green")),
             Integer.parseInt(getTextNode(background, "blue"))
         ));
+
+        String rootPath = getTextNode(display, "datapath");
+        if ((rootPath != null) && !(rootPath.equals(""))) {
+            rootDir = new File(rootPath);
+        }
     
         setSize(size);
 
@@ -129,7 +141,7 @@ public class MQTTPanel extends JPanel implements MouseListener, MouseMotionListe
 
                 String name = e.getNodeName();
                 switch (name) {
-                    case "icon": widget = new MQTTIcon(connection, e); break;
+                    case "icon": widget = new MQTTIcon(connection, e, rootDir); break;
                     case "text": widget = new MQTTText(connection, e); break;
                     case "vbar": widget = new MQTTVBar(connection, e); break;
                 }

@@ -17,12 +17,18 @@ import java.awt.Graphics;
 import java.awt.AlphaComposite;
 import java.awt.Graphics2D;
 import java.awt.event.MouseEvent;
+
 import javax.swing.ImageIcon;
+
+import javax.imageio.ImageIO;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
+
 import org.fusesource.mqtt.client.CallbackConnection;
 import org.fusesource.mqtt.client.QoS;
 
@@ -36,8 +42,14 @@ public class MQTTIcon implements MQTTWidget {
     ArrayList<String> states;
     String publish = null;
     CallbackConnection mqtt;
+    File rootDir;
 
-    public MQTTIcon(CallbackConnection m, Element root) throws FileNotFoundException {
+    public MQTTIcon(CallbackConnection m, Element root) throws FileNotFoundException, IOException {
+        this(m, root, new File(System.getProperty("user.home")));
+    }
+
+    public MQTTIcon(CallbackConnection m, Element root, File rd) throws FileNotFoundException, IOException {
+        rootDir = rd;
         mqtt = m;
         location = new Point(
             Integer.parseInt(root.getAttribute("x")),
@@ -73,7 +85,18 @@ public class MQTTIcon implements MQTTWidget {
                             if (icn == null) {
                                 icn = MQTTIcons.get("@default", size);
                             }
+                        } else if (icon.startsWith("%")) {
+                            File iconFile = new File(rootDir, icon);
+                            if (!iconFile.exists()) {
+                                throw new FileNotFoundException(icon);
+                            }
+                            icn = new ImageIcon(ImageIO.read(iconFile));
                         } else { // External PNG file
+                            File iconFile = new File(icon);
+                            if (!iconFile.exists()) {
+                                throw new FileNotFoundException(icon);
+                            }
+                            icn = new ImageIcon(ImageIO.read(iconFile));
                         }
             
                         if (icn == null) throw new FileNotFoundException(icon);

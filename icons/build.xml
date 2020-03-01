@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<project name="MQTT Panel" default="build">
+
+    <target name="clean" description="Clean out the build directories">
+        <delete dir="bin" />
+        <delete file="mqttpanel-icons-oxygen.jar" />
+    </target>
+
+    <target name="build" depends="copy-oxygen" description="Build">
+        <jar basedir="bin/oxygen" destfile="mqttpanel-icons-oxygen.jar">
+            <manifest>
+                <attribute name="Version" value="1.0.0" />
+            </manifest>
+        </jar>
+    </target>
+
+    <target name="copy-oxygen">
+        <copy todir="bin/oxygen/uk/co/majenko/mqttpanel/icons/oxygen/actions"><fileset dir="oxygen-icons/128x128/actions" /></copy>
+        <copy todir="bin/oxygen/uk/co/majenko/mqttpanel/icons/oxygen/apps"><fileset dir="oxygen-icons/128x128/apps" /></copy>
+        <copy todir="bin/oxygen/uk/co/majenko/mqttpanel/icons/oxygen/categories"><fileset dir="oxygen-icons/128x128/categories" /></copy>
+        <copy todir="bin/oxygen/uk/co/majenko/mqttpanel/icons/oxygen/devices"><fileset dir="oxygen-icons/128x128/devices" /></copy>
+        <copy todir="bin/oxygen/uk/co/majenko/mqttpanel/icons/oxygen/emblems"><fileset dir="oxygen-icons/128x128/emblems" /></copy>
+        <copy todir="bin/oxygen/uk/co/majenko/mqttpanel/icons/oxygen/emotes"><fileset dir="oxygen-icons/128x128/emotes" /></copy>
+        <copy todir="bin/oxygen/uk/co/majenko/mqttpanel/icons/oxygen/mimetypes"><fileset dir="oxygen-icons/128x128/mimetypes" /></copy>
+        <copy todir="bin/oxygen/uk/co/majenko/mqttpanel/icons/oxygen/places"><fileset dir="oxygen-icons/128x128/places" /></copy>
+        <copy todir="bin/oxygen/uk/co/majenko/mqttpanel/icons/oxygen/status"><fileset dir="oxygen-icons/128x128/status" /></copy>
+    </target>
+</project>
