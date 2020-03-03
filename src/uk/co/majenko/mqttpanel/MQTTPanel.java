@@ -144,6 +144,7 @@ public class MQTTPanel extends JPanel implements MouseListener, MouseMotionListe
                     case "icon": widget = new MQTTIcon(connection, e, rootDir); break;
                     case "text": widget = new MQTTText(connection, e); break;
                     case "vbar": widget = new MQTTVBar(connection, e); break;
+                    case "blackbody": widget = new MQTTBlackBody(connection, e); break;
                 }
 
                 if (widget == null) {
