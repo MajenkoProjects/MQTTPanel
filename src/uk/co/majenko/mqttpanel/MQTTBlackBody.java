@@ -39,10 +39,12 @@ public class MQTTBlackBody implements MQTTWidget {
     int minimum;
     int maximum;
     int value;
+    float brightness;
 
     String redPublish = null;
     String greenPublish = null;
     String bluePublish = null;
+    String whitePublish = null;
 
     public MQTTBlackBody(CallbackConnection m, Element root) throws FileNotFoundException {
         mqtt = m;
@@ -59,12 +61,14 @@ public class MQTTBlackBody implements MQTTWidget {
         minimum = 1900;
         maximum = 10000;
         value = minimum;
+        brightness = 0f;
 
         bounds = new Rectangle(location.x, location.y, size.width, size.height);
 
         redPublish = root.getAttribute("red");
         greenPublish = root.getAttribute("green");
         bluePublish = root.getAttribute("blue");
+        whitePublish = root.getAttribute("white");
     }
 
     public Dimension getSize() {
@@ -85,8 +89,10 @@ public class MQTTBlackBody implements MQTTWidget {
         g.setClip(bounds);
 
         for (int y = 0; y < size.height; y++) {
-            g.setColor(colorTemperatureToRGB(minimum + (y * steps)));
-            g.drawLine(location.x, location.y + size.height - y, location.x + size.width, location.y + size.height - y);
+            for (int x = 0; x < size.width; x++) {
+                g.setColor(colorTemperatureToRGB(minimum + (y * steps), (float)x / (float)size.width));
+                g.drawLine(location.x + x, location.y + size.height - y, location.x + x, location.y + size.height - y);
+            }
         }
 
         g.setClip(null);
@@ -99,13 +105,16 @@ public class MQTTBlackBody implements MQTTWidget {
     }
 
     void publishColor() {
-        Color c = colorTemperatureToRGB(value);
+        Color c = colorTemperatureToRGB(value, 1f);
         String state = "" + c.getRed();
         mqtt.publish(redPublish, state.getBytes(), QoS.AT_LEAST_ONCE, false, null);
         state = "" + c.getGreen();
         mqtt.publish(greenPublish, state.getBytes(), QoS.AT_LEAST_ONCE, false, null);
         state = "" + c.getBlue();
         mqtt.publish(bluePublish, state.getBytes(), QoS.AT_LEAST_ONCE, false, null);
+        int b = (int)(brightness * 255);
+        state = "" + b;
+        mqtt.publish(whitePublish, state.getBytes(), QoS.AT_LEAST_ONCE, false, null);
     }
 
     public void mouseEntered(MouseEvent evt) { } 
@@ -118,6 +127,7 @@ public class MQTTBlackBody implements MQTTWidget {
             int range = maximum - minimum;
             int val = pos * range / size.height;
             value = val;
+            brightness = (float)evt.getX() / (float)size.width;
             publishColor();
     }
     public void mouseMoved(MouseEvent evt) { }
@@ -127,42 +137,51 @@ public class MQTTBlackBody implements MQTTWidget {
             int range = maximum - minimum;
             int val = pos * range / size.height;
             value = val;
+            brightness = (float)evt.getX() / (float)size.width;
             publishColor();
     }
 
-    Color colorTemperatureToRGB(int kelvin){
+    Color colorTemperatureToRGB(int kelvin, float brightness){
 
-        double temp = kelvin / 100d;
+        float temp = kelvin / 100f;
 
-        double red, green, blue;
+        float red, green, blue;
 
         if( temp <= 66 ){ 
             red = 255; 
             green = temp;
-            green = 99.4708025861 * Math.log(green) - 161.1195681661;
+            green = (float)(99.4708025861 * Math.log(green) - 161.1195681661);
             
             if( temp <= 19){
                 blue = 0;
             } else {
                 blue = temp-10;
-                blue = 138.5177312231 * Math.log(blue) - 305.0447927307;
+                blue = (float)(138.5177312231 * Math.log(blue) - 305.0447927307);
             }
         } else {
             red = temp - 60;
-            red = 329.698727446 * Math.pow(red, -0.1332047592);
+            red = (float)(329.698727446 * Math.pow(red, -0.1332047592));
             
             green = temp - 60;
-            green = 288.1221695283 * Math.pow(green, -0.0755148492 );
+            green = (float)(288.1221695283 * Math.pow(green, -0.0755148492 ));
 
             blue = 255;
         }
 
-        Color c = new Color(clamp(red, 0, 255), clamp(green, 0, 255), clamp(blue, 0, 200));
-        return c;
+        int ired = clamp(red, 0, 255);
+        int igreen = clamp(green, 0, 255);
+        int iblue = clamp(blue, 0, 255);
+
+        float[] hsb = Color.RGBtoHSB(ired, igreen, iblue, null);
+        float h = hsb[0];
+        float s = hsb[1];
+        float b = hsb[2] * brightness;
+
+        return Color.getHSBColor(h, s, b);
     }
 
 
-    int clamp(double x, int min, int max ) {
+    int clamp(float x, int min, int max ) {
         int x1 = (int)x;
 
         if(x1<min){ return min; }
